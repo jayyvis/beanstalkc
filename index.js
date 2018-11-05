@@ -215,12 +215,12 @@ Response.prototype.parse = function (data) {
 Response.prototype.parseYaml = function (data) {
    if (data === "") {
       this.yaml_data = null;
-      return null
+      return true
    }
    var lines = data.split('\n');
    if (!lines || (!!lines && lines.length <= 0)) {
       this.yaml_data = null;
-      return null;
+      return true;
    }
    var last_arg = this.args[this.args.length - 1];
    var expected_bodylength_inbytes = parseInt(last_arg, 10);
