@@ -192,10 +192,8 @@ Response.prototype.parse = function (data) {
    }
 
    if (this.receives_yaml) {
-      this.parseYaml(data.substr(i + 2));
-   }
-
-   if ((this.CODES_REQUIRING_BODY[code])) {
+      this.complete = !!this.parseYaml(data.substr(i + 2));
+   } else if ((this.CODES_REQUIRING_BODY[code])) {
       this.complete = !!this.parseBody(data.substr(i + 2));
    } else {
       this.complete = true;
@@ -208,6 +206,9 @@ Response.prototype.parse = function (data) {
       if (this.body) {
          this.consumed_data_length += this.body.length + 2;
       }
+      if (this.yaml_data) {
+         this.consumed_data_length += this.yaml_data_length + 2;
+      }
    }
 };
 
@@ -216,6 +217,8 @@ Response.prototype.parseYaml = function (data) {
    if (!lines || (!!lines && lines.length <= 0)) {
       return null;
    }
+   var last_arg = this.args[this.args.length - 1];
+   var expected_bodylength_inbytes = parseInt(last_arg, 10);
    var yaml = {};
    lines.forEach(line => {
       var lineParts = line.split(':');
@@ -228,8 +231,11 @@ Response.prototype.parseYaml = function (data) {
          yaml[lineParts[0]] = value;
       }
    });
+   this.body = null;
+   this.args.pop();
    this.yaml_data = yaml;
-   return yaml;
+   this.yaml_data_length = expected_bodylength_inbytes;
+   return true;
 };
 
 Response.prototype.parseBody = function (data) {
